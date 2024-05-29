@@ -1,0 +1,10 @@
+**/*.pyc
+**/*.DS_STORE
+/minimal_version/__pycache__
+/minimal_version/dataset
+/minimal_version/out
+/paper_implementation/pretrained_models
+/paper_implementation/out
+/minimal_version/dataset
+/scaled_version/pretrained_models
+/minimal_version/weights
