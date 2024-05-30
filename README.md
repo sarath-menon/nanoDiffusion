@@ -4,7 +4,7 @@ The simplest repository for training/finetuning small scale diffusion transforme
 
 Train in the fashion MNIST dataset for a couple of minutes on your machine and generate images. Training takes ~2 minutes on my M1 Macbook Pro to run 3 epochs, and you get these images. No GPU required !. 
 
-![Sample Generated Image](minimal_version/out/sample_fmnist.png)
+![Sample Generated Image](assets/demo.png)
 
 
 Pretrained weights: https://drive.google.com/file/d/1ChJitYTpO0gzFbd3e0h_NVrD6Tmvs2nI/view?usp=drive_link
