@@ -127,6 +127,21 @@ class PatchEmbed(nn.Module):
 
         return x
 
+    def unpatchify(self, x, out_channels):
+        """
+        x: (N, T, patch_size**2 * C)
+        imgs: (N, H, W, C)
+        """
+        c = out_channels
+        p = self.patch_size
+        h = w = int(x.shape[1] ** 0.5)
+        assert h * w == x.shape[1]
+
+        x = x.reshape(shape=(x.shape[0], h, w, p, p, c))
+        x = x.permute(0, 5, 1, 3, 2, 4).contiguous()  # Rearrange to (N, C, H, p, W, p)
+        imgs = x.view(x.shape[0], c, h * p, w * p)  # Combine patch dimensions with height and width
+        return imgs
+
 class AcausalSelfAttention(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -265,21 +280,6 @@ class DiT(nn.Module):
 
         self.final_layer = FinalLayer(cfg.n_embed, cfg.patch_size, self.out_channels)
 
-    def unpatchify(self, x):
-        """
-        x: (N, T, patch_size**2 * C)
-        imgs: (N, H, W, C)
-        """
-        c = self.out_channels
-        p = self.patch_size
-        h = w = int(x.shape[1] ** 0.5)
-        assert h * w == x.shape[1]
-
-        x = x.reshape(shape=(x.shape[0], h, w, p, p, c))
-        x = x.permute(0, 5, 1, 3, 2, 4).contiguous()  # Rearrange to (N, C, H, p, W, p)
-        imgs = x.view(x.shape[0], c, h * p, w * p)  # Combine patch dimensions with height and width
-        return imgs
-
     def forward(self, x, t, y, targets=None):
 
         # get timestep and label embeddings
@@ -295,7 +295,7 @@ class DiT(nn.Module):
 
         # final linear layer
         x = self.final_layer(x, c)
-        x = self.unpatchify(x)   
+        x = self.patch_embedder.unpatchify(x, self.out_channels)   
 
         return x
 
