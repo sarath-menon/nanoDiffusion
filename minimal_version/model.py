@@ -139,7 +139,7 @@ class PatchEmbed(nn.Module):
 
         x = x.reshape(shape=(x.shape[0], h, w, p, p, c))
         x = x.permute(0, 5, 1, 3, 2, 4).contiguous()  # Rearrange to (N, C, H, p, W, p)
-        imgs = x.view(x.shape[0], c, h * p, w * p)  # Combine patch dimensions with height and width
+        imgs = x.view(x.shape[0], c, h * p, w * p)  
         return imgs
 
 class AcausalSelfAttention(nn.Module):
@@ -311,22 +311,24 @@ class DiT(nn.Module):
         eps = th.cat([half_eps, half_eps], dim=0)
         return th.cat([eps, rest], dim=1)
 
-@dataclass
 class GaussianDiffusion:
-    diffusion_steps: int = 300
-    device: str = 'cpu'
-    betas: th.Tensor = field(init=False)
-    alphas: th.Tensor = field(init=False)
-    alpha_prod: th.Tensor = field(init=False)
-    alpha_prod_prev: th.Tensor = field(init=False)
-    posterior_var: th.Tensor = field(init=False)
-
-    def __post_init__(self):
+    def __init__(self, diffusion_steps=300, device='cpu'):
+        self.diffusion_steps = diffusion_steps
+        self.device = device
         self.betas = self.linear_beta_schedule(self.diffusion_steps).float().to(self.device)
         self.alphas = 1. - self.betas
         self.alpha_prod = th.cumprod(self.alphas, 0)
         self.alpha_prod_prev = th.cat([th.tensor([1.0]), self.alpha_prod[:-1].to(self.device)])
         self.posterior_var = self.betas * (1. - self.alpha_prod_prev) / (1. - self.alpha_prod)
+
+    def p_sample(self, x_start, t):
+        B = x_start.size(0)
+        noise = th.randn_like(x_start) #ground truth noise
+        a = th.sqrt(self.alpha_prod)[t].reshape(B,1,1,1)
+        b = th.sqrt(1- self.alpha_prod)[t].reshape(B,1,1,1)
+
+        x_t = a*x_start + b*noise
+        return x_t, noise
 
     def linear_beta_schedule(self, diffusion_timesteps):
         scale = 1

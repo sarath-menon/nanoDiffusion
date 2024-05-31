@@ -3,13 +3,13 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 from torchvision import datasets, transforms
 from dataclasses import dataclass
-from model_v1 import DiT, DiTConfig, GaussianDiffusion 
+from model import DiT, DiTConfig, GaussianDiffusion 
 th.manual_seed(42)
 
 @dataclass
 class TrainConfig:
-    image_size: int = 28 # cifar10
-    patch_size = 28
+    image_size: int = 28 # fashion mnist img size
+    patch_size = 14
     num_epochs: int = 3
     eval_iters: int = 200
     eval_interval: int = 100
@@ -40,14 +40,9 @@ train_dataset  = datasets.FashionMNIST(root='./dataset', train=True, download=Tr
 trainloader = th.utils.data.DataLoader(train_dataset, batch_size=train_cfg.batch_size,shuffle=True)
 
 def p_loss(model, x_start, t, y):
-    B = x_start.size(0)
+    # sample an image
+    x_t, noise = gd.p_sample(x_start, t)
 
-    # draw a sample
-    noise = th.randn_like(x) #ground truth noise
-    a = th.sqrt(gd.alpha_prod)[t].reshape(B,1,1,1)
-    b = th.sqrt(1- gd.alpha_prod)[t].reshape(B,1,1,1)
-    x_t = a*x_start + b*noise
-    
     # get predicted noise
     B, C = x_t.shape[:2]
     model_output = model(x_t, t, y)
