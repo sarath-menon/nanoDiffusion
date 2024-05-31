@@ -47,9 +47,9 @@ def p_loss(model, x_start, t, y):
     B, C = x_t.shape[:2]
     model_output = model(x_t, t, y)
     assert model_output.shape == (B, C * 2, *x_t.shape[2:])
-    noise_pred, model_var_values = th.split(model_output, C, dim=1)
+    noise_pred_mean, noise_pred_var = th.split(model_output, C, dim=1)
 
-    return th.nn.functional.mse_loss(noise, noise_pred)
+    return th.nn.functional.mse_loss(noise, noise_pred_mean)
 
 for epoch in range(train_cfg.num_epochs):
     running_loss = 0.0
@@ -67,8 +67,9 @@ for epoch in range(train_cfg.num_epochs):
         loss.backward()
         optimizer.step()
 
-         # print statistics
         running_loss += loss.item()
+
+        # print statistics and save model checkpoint
         if i!=0 and i % train_cfg.eval_interval == 0:    
             print(f'[{epoch + 1}, {i + 1:5d}] runnning loss: {running_loss / train_cfg.eval_interval:.3f}')
             running_loss = 0.0
