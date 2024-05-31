@@ -200,40 +200,18 @@ class FeedForward(nn.Module):
         x = self.dropout(x)
         return x
 
-def get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False, extra_tokens=0):
-    """
-    grid_size: int of the grid height and width
-    return:
-    pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
-    """
-    assert embed_dim % 2 == 0
-    grid_h = th.arange(grid_size, dtype=th.float32)
-    grid_w = th.arange(grid_size, dtype=th.float32)
-    grid = th.meshgrid(grid_w, grid_h, indexing="xy")  # here w goes first
-    grid = th.stack(grid, dim=0).reshape([2, 1, grid_size, grid_size])
+def get_2d_sincos_pos_embed( n_embed, input_size, temperature: int = 10000, dtype = th.float32, divide_dim = 4):
+    y, x = th.meshgrid(th.arange(input_size), th.arange(input_size), indexing="ij")
+    assert (n_embed % divide_dim) == 0, "feature n_embedension must be multiple of 4 for sincos emb"
+    n_embed = n_embed // divide_dim
+    omega = th.arange(n_embed) / (n_embed )
+    omega = 1.0 / (temperature ** omega)
 
-    # use half of dimensions to encode grid_h and grid_w
-    emb_h = get_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[0])  # (H*W, D/2)
-    emb_w = get_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[1])  # (H*W, D/2)
-    pos_embed = th.cat([emb_h, emb_w], dim=1)  # (H*W, D)
+    y = y.flatten()[:, None] * omega[None, :]
+    x = x.flatten()[:, None] * omega[None, :]
+    pe = th.cat((x.sin(), x.cos(), y.sin(), y.cos()), dim=1)
+    return pe.type(dtype)
 
-    if cls_token and extra_tokens > 0:
-        pos_embed = th.cat([th.zeros([extra_tokens, embed_dim]), pos_embed], dim=0)
-    return pos_embed
-
-def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
-    """
-    embed_dim: output dimension for each position
-    pos: a list of positions to be encoded: size (M,)
-    out: (M, D)
-    """
-    assert embed_dim % 2 == 0
-    omega = th.arange(embed_dim // 2, dtype=th.float64)
-    omega = 1. / 10000**(omega / (embed_dim / 2.))  # (D/2,)
-
-    out = pos.reshape(-1, 1) * omega  # (M, D/2), outer product
-    emb = th.cat([th.sin(out), th.cos(out) ], axis=1)  # (M, D)
-    return emb
 
 class FinalLayer(nn.Module):
     """
@@ -277,7 +255,6 @@ class DiT(nn.Module):
 
         # position embedding
         pos_embed = nn.Parameter(th.randn(1, num_patches, cfg.n_embed) * .02)
-        print("N")
 
         pos_embed_tensor = get_2d_sincos_pos_embed(pos_embed.shape[-1], int(num_patches ** 0.5))
         self.pos_embed = nn.Parameter(pos_embed_tensor.float().unsqueeze(0))  # Convert to float, add batch dimension, and wrap in nn.Parameter
