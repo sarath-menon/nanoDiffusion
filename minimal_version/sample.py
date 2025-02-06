@@ -1,3 +1,5 @@
+    #!/usr/bin/env python3
+
 import torch as th
 from torchvision.utils import save_image
 from model import DiT, DiTConfig, GaussianDiffusion 

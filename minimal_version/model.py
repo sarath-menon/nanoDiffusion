@@ -324,9 +324,9 @@ class GaussianDiffusion:
     def p_sample(self, x_start, t):
         B = x_start.size(0)
         noise = th.randn_like(x_start) #ground truth noise
+        
         a = th.sqrt(self.alpha_prod)[t].reshape(B,1,1,1)
         b = th.sqrt(1- self.alpha_prod)[t].reshape(B,1,1,1)
-
         x_t = a*x_start + b*noise
         return x_t, noise
 
