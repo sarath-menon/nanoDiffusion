@@ -4,6 +4,7 @@ from torchvision.datasets import ImageFolder
 from torchvision import datasets, transforms
 from dataclasses import dataclass
 from model import DiT, DiTConfig, GaussianDiffusion 
+from tqdm import tqdm
 th.manual_seed(42)
 
 @dataclass
@@ -53,9 +54,9 @@ def p_loss(model, x_start, t, y):
 
 for epoch in range(train_cfg.num_epochs):
     running_loss = 0.0
-    print("Starting epoch")
+    print("Starting epoch", epoch + 1)
 
-    for i, (x, y) in enumerate(trainloader):
+    for i, (x, y) in tqdm(enumerate(trainloader), total=len(trainloader)):
         x = x.to(device) 
         y = y.to(device)
 
@@ -71,9 +72,10 @@ for epoch in range(train_cfg.num_epochs):
 
         # print statistics and save model checkpoint
         if i!=0 and i % train_cfg.eval_interval == 0:    
-            print(f'[{epoch + 1}, {i + 1:5d}] runnning loss: {running_loss / train_cfg.eval_interval:.3f}')
+            print(f'Loss: {running_loss / train_cfg.eval_interval:.3f}')
             running_loss = 0.0
-            th.save(model.state_dict(), 'weights/simple_fmnist_weights.pth')
+    
+    th.save(model.state_dict(), 'weights/simple_fmnist_weights.pth')
 
 
 

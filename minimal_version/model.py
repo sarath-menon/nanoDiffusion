@@ -165,6 +165,8 @@ class AcausalSelfAttention(nn.Module):
         # get q,k,v, matrices and reshape for multi-head attention
         q, k, v = self.qkv(x).chunk(3, dim=2)
         q, k, v = [z.view(B, T, self.n_heads, self.head_size).transpose(1, 2) for z in (q, k, v)]  # (B, nh, T, hs)
+
+        # nanoGPT applies masking before computing softmax to set the attention weights to zero. We don'f need to do that
         
         weights = q @ k.transpose(-2,-1) * (1.0 / math.sqrt(k.size(-1))) # (B,T,hs) @ (B,hs,T) --->  (B,T,T)
         weights = F.softmax(weights, dim=-1)
@@ -301,6 +303,7 @@ class DiT(nn.Module):
 
     # Batch the unconditional forward pass for classifier-free guidance
     def forward_with_cfg(self, x, t, y, cfg_scale):
+        # for optimization instead of passing the entire input x twice (once with the label and once without). first half is assumed to be the conditional input and the second half is the unconditional input. If
         half = x[: len(x) // 2]
         combined = th.cat([half, half], dim=0)  # Duplicate the first half of the input
         model_out = self.forward(combined, t, y)

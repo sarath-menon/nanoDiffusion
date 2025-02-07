@@ -31,7 +31,7 @@ def p_sample_loop(model_output, x, t, gd):
     b = gd.betas * th.sqrt(1./gd.alphas) * th.sqrt(1./(1-gd.alpha_prod))
     mean_pred = a[t] * x - b[t] * noise_pred
 
-    # fix var = beta_t
+    # fix the var to beta_t
     std_dev_fixed = th.sqrt(gd.posterior_var[t])
 
     # inference
