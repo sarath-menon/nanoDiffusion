@@ -1,4 +1,4 @@
-The simplest repository for training/finetuning small scale diffusion transformers. Inspired by Andrej Karpathy's nanoGPT. There two implementations: A minimal version and a scaled uup version. The minimal version allows you to train and generate images in a couple of minutes on your machine. The scaled up version of the same model can load the pretrained weigths from landmark paper [https://arxiv.org/abs/2212.09748](Scalable Diffusion Models with Transformers) to generate high quality images.
+The simplest repository for training/finetuning small scale diffusion transformers. Inspired by Andrej Karpathy's nanoGPT. There two implementations: A minimal version and a scaled uup version. The minimal version allows you to train and generate images in a couple of minutes on your machine. The scaled up version of the same model can load the pretrained weigths from landmark paper [Scalable Diffusion Models with Transformers](https://arxiv.org/abs/2212.09748) to generate high quality images.
 
 # Minimal version
 
