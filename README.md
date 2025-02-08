@@ -8,6 +8,12 @@ Train in the fashion MNIST dataset for a couple of minutes on your machine and g
 
 Pretrained weights: https://drive.google.com/file/d/1ChJitYTpO0gzFbd3e0h_NVrD6Tmvs2nI/view?usp=drive_link
 
+To install dependencies:
+
+```bash
+poetry install
+```
+
 To generate images:
 
 ```python
